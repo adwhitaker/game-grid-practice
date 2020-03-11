@@ -1,36 +1,75 @@
-const buildCell = (x, y) => {
+const calcUp = (x, y) => {
+    if (y === 0) {
+        return 'wall'
+    }
+
+    return 'door'
+}
+
+const calcDown = (x, y, height) => {
+    if (y + 1 === height) {
+        return 'wall'
+    }
+
+    return 'door'
+}
+
+const calcLeft = (x, y) => {
+    if (x === 0) {
+        return 'wall'
+    }
+
+    return 'door'
+}
+
+const calcRight = (x, y, width) => {
+    if (x + 1 === width) {
+        return 'wall'
+    }
+
+    return 'door'
+}
+
+const buildCell = (x, y, length) => {
     return {
         x,
         y,
-        up: 'door',
-        left: 'door',
-        right: 'door',
-        down: 'door',
+        up: calcUp(x, y),
+        down: calcDown(x, y, length),
+        left: calcLeft(x, y),
+        right: calcRight(x, y, length),
     }
 }
 
 const buildRow = (width, row) => {
     let out = []
     for (let i = 0; i < width; i++) {
-        out.push(buildCell(i, row))
+        out.push(buildCell(i, row, width))
     }
     return out
 }
 
-const buildGrid = (width = 5) => {
+const buildGrid = (height = 5) => {
     let out = []
-    for (let i = 0; i < width; i++) {
-        out.push(buildRow(width, i))
+    for (let i = 0; i < height; i++) {
+        out.push(buildRow(height, i))
     }
     return out
 }
 
 const getCell = (grid, x, y) => {
+    if (x < 0 || y < 0) {
+        return null
+    }
+
+    if (x > grid[0].length || y > grid.length) {
+        return null
+    }
+
     return grid[y][x]
 }
 
-const getCenter = (state) => {
-    const { grid } = state
+const getCenter = (grid) => {
     const centerX = Math.ceil(grid.length / 2)
     const centerY = Math.ceil(grid[0].length / 2)
     return getCell(grid, centerX, centerY)
@@ -123,7 +162,19 @@ const move = (state, direction) => {
     }
 }
 
+const getNeighbors = (state, position) => {
+    const { grid } = state
+
+    return {
+        up: getCell(grid, position.x, position.y - 1),
+        down: getCell(grid, position.x, position.y + 1),
+        left: getCell(grid, position.x - 1, position.y),
+        right: getCell(grid, position.x + 1, position.y)
+    }
+}
+
 const grid = buildGrid()
+
 let state = {
     grid,
     current: {
@@ -140,3 +191,5 @@ state = move(state, 'up')
 console.log('current', getCurrent(state))
 state = move(state, 'right')
 console.log('current', getCurrent(state))
+
+console.log("neighbors", getNeighbors(state, getCurrent(state)))
