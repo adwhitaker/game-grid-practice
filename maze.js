@@ -1,6 +1,6 @@
 let cols, rows, current
 
-const w = 30
+const w = 40
 const grid = []
 const stack = []
 
