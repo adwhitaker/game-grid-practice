@@ -49,7 +49,7 @@ function draw() {
     background(50)
     grid.forEach(cell => cell.show())
 
-    if (finished) return;
+    if (finished) return
 
     if (!unexplored.length) {
         findEdges()
@@ -62,75 +62,82 @@ function draw() {
 
 function findEdges() {
     grid.forEach((cell, i) => {
-        const edge = cell.getEdges();
+        const edge = cell.getEdges()
 
         const show = floor(random(0, 2))
-        console.log('show', show, edge)
         if (edge && show) {
 
             removeWalls(cell, edge)
-            grid[i] = cell;
-            grid[index(edge.i, edge.j)] = edge;
+            grid[i] = cell
+            grid[index(edge.i, edge.j)] = edge
         }
     })
 
-    finished = true;
+    finished = true
 }
 
 
-function moveStart() {
-    const startIndex = floor(random(0, start.length))
+function findUnexplored(cells) {
+    const unexploredList = []
 
-    const starting = start[startIndex]
-    starting.visited = true
+    for (let i = 0; i < cells.length; i++) {
+        const cell = cells[i]
+        const neighbor = cell.checkNeighbor()
+        if (neighbor) {
+            unexploredList.push(cell)
+        }
+
+    }
+    return unexploredList
+}
+
+function updateUnexplored(neighbor) {
+    unexplored = unexplored.reduce((out, cell) => {
+        if (cell.i === neighbor.i && cell.j === neighbor.j) {
+            return out
+        }
+
+        out.push(cell)
+        return out
+    }, [])
+}
+
+function moveStart() {
+    const cellsWithUnexploredNeighbors = findUnexplored(start)
+    const startIndex = floor(random(0, cellsWithUnexploredNeighbors.length))
+    const starting = cellsWithUnexploredNeighbors[startIndex]
+
+    if (!starting) return
 
     starting.highlight()
 
     const neighbor = starting.checkNeighbor()
-    if (neighbor) {
-        neighbor.visited = true
-        removeWalls(starting, neighbor)
-        neighbor.group = "start"
-        start.push(neighbor)
-        start[startIndex] = starting
+    removeWalls(starting, neighbor)
+    neighbor.group = 'start'
+    start.push(neighbor)
+    start[startIndex] = starting
 
-        unexplored = unexplored.reduce((out, cell) => {
-            if (cell.i === neighbor.i && cell.j === neighbor.j) {
-                return out
-            }
-
-            out.push(cell)
-            return out
-        }, [])
-    }
+    updateUnexplored(neighbor)
 }
 
 function moveGoal() {
-    const goalIndex = floor(random(0, goal.length))
+    const cellsWithUnexploredNeighbors = findUnexplored(goal)
+    const goalIndex = floor(random(0, cellsWithUnexploredNeighbors.length))
+    const goaling = cellsWithUnexploredNeighbors[goalIndex]
 
-    const goaling = goal[goalIndex]
-    goaling.visited = true
+    if (!goaling) return
+
 
     goaling.highlight()
 
     const neighbor = goaling.checkNeighbor()
-    if (neighbor) {
-        neighbor.visited = true
-        removeWalls(goaling, neighbor)
-        neighbor.group = "goal"
-        goal.push(neighbor)
-        goal[goalIndex] = goaling
+    removeWalls(goaling, neighbor)
+    neighbor.group = 'goal'
+    goal.push(neighbor)
+    goal[goalIndex] = goaling
 
 
-        unexplored = unexplored.reduce((out, cell) => {
-            if (cell.i === neighbor.i && cell.j === neighbor.j) {
-                return out
-            }
-
-            out.push(cell)
-            return out
-        }, [])
-    }
+    updateUnexplored(neighbor)
 }
 
 
@@ -140,7 +147,6 @@ class Cell {
         this.j = j
         // top, right, bottom, left
         this.walls = [true, true, true, true]
-        this.visited = false
         this.group = null
     }
 
@@ -163,7 +169,7 @@ class Cell {
             line(x, y + w, x, y)
         }
 
-        if (this.visited) {
+        if (this.group) {
             noStroke()
             if (this.group === 'start' && !finished) {
 
@@ -178,27 +184,24 @@ class Cell {
     checkNeighbor() {
         const neighbors = []
 
-        // one dimensional array;
-        // this.i + this.j * cols;
-
         const top = grid[index(this.i, this.j - 1)]
         const right = grid[index(this.i + 1, this.j)]
         const bottom = grid[index(this.i, this.j + 1)]
         const left = grid[index(this.i - 1, this.j)]
 
-        if (top && !top.visited && !top.group !== this.group) {
+        if (top && !top.group) {
             neighbors.push(top)
         }
 
-        if (right && !right.visited && !right.group !== this.group) {
+        if (right && !right.group) {
             neighbors.push(right)
         }
 
-        if (bottom && !bottom.visited && !bottom.group !== this.group) {
+        if (bottom && !bottom.group) {
             neighbors.push(bottom)
         }
 
-        if (left && !left.visited && !left.group !== this.group) {
+        if (left && !left.group) {
             neighbors.push(left)
         }
 
@@ -213,8 +216,6 @@ class Cell {
     getEdges() {
         const neighbors = []
 
-        // one dimensional array;
-        // this.i + this.j * cols;
 
         const top = grid[index(this.i, this.j - 1)]
         const right = grid[index(this.i + 1, this.j)]
@@ -222,7 +223,6 @@ class Cell {
         const left = grid[index(this.i - 1, this.j)]
 
         if (top && top.group !== this.group) {
-        console.log("top", top, this)
             neighbors.push(top)
         }
 
